@@ -1,6 +1,6 @@
 # Periodicals
 
-Manage e-mail newsletters and other "periodicals" such as tweets and RSS feeds.
+Persist periodicals to CSV.
 
 # Dependencies
 

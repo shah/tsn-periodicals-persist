@@ -1,6 +1,6 @@
 {
     "name": "@shah/tsn-periodicals-persist",
-    "version": "0.8.5",
+    "version": "0.8.1",
     "description": "Content classifiers",
     "main": "dist/periodicals-persist.js",
     "types": "dist/periodicals-persist.d.ts",
