@@ -1,0 +1,17 @@
+# This is a rather large file, kept as *.gz in repo
+email-supplier-test-content.json
+email-supplier-test-results/
+
+# Transpiled JavaScript (from TypeScript, tsconfig.json)
+dist/
+
+# Temporary files
+tmp/
+temp/
+
+# Dependency directory
+# https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
+node_modules
+
+# IDE files
+.vscode

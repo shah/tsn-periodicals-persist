@@ -1,0 +1,43 @@
+{
+    "name": "@shah/tsn-periodicals-persist",
+    "version": "0.8.0",
+    "description": "Content classifiers",
+    "main": "dist/periodicals-persist.js",
+    "types": "dist/periodicals-persist.d.ts",
+    "typings": "dist/periodicals-persist",
+    "scripts": {
+        "start": "ts-node periodicals-persist.ts",
+        "prepublishOnly": "rm -rf dist && tsc --project tsconfig.json",
+        "build": "tsc --project tsconfig.json",
+        "test": "alsatian '*.spec.ts'"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/shah/tsn-periodicals-persist.git"
+    },
+    "keywords": [
+        "email",
+        "newsletters"
+    ],
+    "author": "Shahid N. Shah",
+    "license": "MIT",
+    "dependencies": {
+        "@shah/tsn-periodicals": "^0.7.1",
+        "uuid": "^8.3.0",
+        "whatwg-mimetype": "^2.3.0"
+    },
+    "bugs": {
+        "url": "https://github.com/shah/tsn-periodicals-persist/issues"
+    },
+    "homepage": "https://github.com/shah/tsn-periodicals-persist",
+    "devDependencies": {
+        "@shah/queryable-content": "0.5.2",
+        "@types/whatwg-mimetype": "^2.1.0",
+        "@shah/ts-pipe": "0.5.0",
+        "@types/uuid": "^8.3.0",
+        "@types/node": "^14.0.26",
+        "ts-node": "^8.10.2",
+        "typescript": "^3.9.7",
+        "alsatian": "^3.2.1"
+    }
+}
