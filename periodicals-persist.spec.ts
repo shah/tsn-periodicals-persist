@@ -3,6 +3,7 @@ import * as pipe from "@shah/ts-pipe";
 import * as atc from "@shah/tsn-content-classification-html-anchors";
 import * as atcRulesCommon from "@shah/tsn-content-classification-html-anchors/dist/html-anchor-text-classification-rules-common";
 import * as pd from "@shah/tsn-periodicals";
+import * as ptab from "@shah/tsn-persist-tabular";
 import { Expect, SetupFixture, Test, TestCase, TestFixture } from "alsatian";
 import * as fs from "fs";
 import * as path from "path";
@@ -22,10 +23,10 @@ export interface EmailPeriodicalEdition extends pd.PeriodicalEdition {
     readonly subject: string;
 }
 
-export class EmailPeriodicalEditionPropsSupplier implements pp.PersistPropsTransformer {
+export class EmailPeriodicalEditionPropsSupplier implements ptab.PersistPropsTransformer {
     static readonly singleton = new EmailPeriodicalEditionPropsSupplier();
 
-    flow(ctx: pp.PersistPropsTransformContext<EmailPeriodicalEdition>, suggested: pp.PersistProperties): pp.PersistProperties {
+    flow(ctx: ptab.PersistPropsTransformContext<EmailPeriodicalEdition>, suggested: ptab.PersistProperties): ptab.PersistProperties {
         return { ...suggested, subject: ctx.source.subject };
     }
 }
@@ -90,7 +91,7 @@ export class EmailTestSuite {
         const writerNames = pp.DefaultRelationalCsvTableWriters.NAMES;
         const writers = new pp.DefaultRelationalCsvTableWriters(this.destPath, pp.DefaultRelationalCsvTableWriters.UUID_NAMESPACE, {
             names: writerNames,
-            periodicalEditions: new pp.TabularWriter({
+            periodicalEditions: new ptab.TabularWriter({
                 destPath: this.destPath, fileName: writerNames.periodicalEditions,
                 parentUuidNamespace: pp.DefaultRelationalCsvTableWriters.UUID_NAMESPACE,
                 ppTransform: EmailPeriodicalEditionPropsSupplier.singleton

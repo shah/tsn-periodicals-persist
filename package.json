@@ -1,6 +1,6 @@
 {
     "name": "@shah/tsn-periodicals-persist",
-    "version": "0.8.1",
+    "version": "0.9.1",
     "description": "Content classifiers",
     "main": "dist/periodicals-persist.js",
     "types": "dist/periodicals-persist.d.ts",
@@ -23,6 +23,7 @@
     "license": "MIT",
     "dependencies": {
         "@shah/tsn-periodicals": "^0.7.3",
+        "@shah/tsn-persist-tabular": "^0.1.0",
         "uuid": "^8.3.0"
     },
     "bugs": {

@@ -1,118 +1,6 @@
-import * as pipe from "@shah/ts-pipe";
 import * as pd from "@shah/tsn-periodicals";
 import * as fs from "fs";
-import * as path from "path";
-import { v5 as uuid } from "uuid";
-
-export type UUID = string;
-
-export interface PersistProperties {
-    [name: string]: any;
-}
-
-export interface PersistPropsTransformContext<T> {
-    readonly persist: PersistProperties;
-    readonly source: T;
-}
-
-export interface PersistPropsTransformer extends pipe.PipeUnionSync<PersistPropsTransformContext<any>, PersistProperties> {
-}
-
-export interface TabularColumnDefn {
-    delimitedHeader(): string;
-    delimitedContent(pp: PersistProperties): string;
-}
-
-export class GuessColumnDefn {
-    constructor(readonly name: string, readonly guessedFrom: PersistProperties) {
-    }
-
-    delimitedHeader(): string {
-        return this.name;
-    }
-
-    delimitedContent(pp: PersistProperties): string {
-        const value = pp[this.name];
-        return this.name == "id" || this.name.endsWith("_id")
-            ? value
-            : JSON.stringify(value);
-    }
-}
-
-export interface TabularWriterOptions {
-    readonly destPath: string;
-    readonly fileName: string;
-    readonly parentUuidNamespace: string;
-    readonly ppTransform?: PersistPropsTransformer;
-    readonly schema?: TabularColumnDefn[];
-}
-
-export class TabularWriter<T> {
-    readonly columnDelim = ",";
-    readonly recordDelim = "\n";
-    readonly destPath: string;
-    readonly fileName: string;
-    readonly pkNamespace: UUID;
-    readonly schema: TabularColumnDefn[];
-    readonly ppTransform?: PersistPropsTransformer;
-    readonly csvStream: fs.WriteStream;
-    protected rowIndex: number = 0;
-
-    constructor({ destPath, fileName, parentUuidNamespace, ppTransform, schema }: TabularWriterOptions) {
-        this.destPath = destPath;
-        this.fileName = fileName;
-        this.csvStream = fs.createWriteStream(path.join(destPath, fileName));
-        this.schema = schema || [];
-        this.ppTransform = ppTransform;
-        this.pkNamespace = uuid(fileName, parentUuidNamespace);
-    }
-
-    createId(name: string): UUID {
-        return uuid(name, this.pkNamespace);
-    }
-
-    close(): void {
-        this.csvStream.close();
-    }
-
-    guessSchema(guessFrom: PersistProperties): void {
-        if (this.schema.length == 0) {
-            for (const name of Object.keys(guessFrom)) {
-                this.schema.push(new GuessColumnDefn(name, guessFrom));
-            }
-        }
-    }
-
-    writeDelimitedHeader(guess: PersistProperties): void {
-        this.guessSchema(guess);
-        const headers: string[] = [];
-        for (const column of this.schema) {
-            headers.push(column.delimitedHeader());
-        }
-        this.csvStream.write(headers.join(this.columnDelim));
-    }
-
-    write(ctx: PersistPropsTransformContext<T>): boolean {
-        let persist = ctx.persist;
-        if (this.ppTransform) {
-            persist = this.ppTransform.flow(ctx, persist);
-        }
-        if (persist) {
-            if (this.rowIndex == 0) {
-                this.writeDelimitedHeader(persist);
-            }
-            const content: string[] = [];
-            for (const column of this.schema) {
-                content.push(column.delimitedContent(persist));
-            }
-            this.csvStream.write(this.recordDelim);
-            this.csvStream.write(content.join(this.columnDelim));
-            this.rowIndex++;
-            return true;
-        }
-        return false;
-    }
-}
+import * as ptab from "@shah/tsn-persist-tabular";
 
 export interface RelationalCsvTableNames {
     readonly suppliers: string;
@@ -125,17 +13,17 @@ export interface RelationalCsvTableNames {
 
 export interface RelationalCsvTableWriters {
     readonly names: RelationalCsvTableNames,
-    readonly suppliers: TabularWriter<pd.PeriodicalSupplier>;
-    readonly periodicals: TabularWriter<pd.Periodical>;
-    readonly periodicalAnchors: TabularWriter<pd.PeriodicalAnchor>;
-    readonly periodicalCommonAnchors: TabularWriter<pd.PeriodicalAnchor>;
-    readonly periodicalEditions: TabularWriter<pd.PeriodicalEdition>;
-    readonly editionAnchors: TabularWriter<pd.ClassifiedAnchor>;
+    readonly suppliers: ptab.TabularWriter<pd.PeriodicalSupplier>;
+    readonly periodicals: ptab.TabularWriter<pd.Periodical>;
+    readonly periodicalAnchors: ptab.TabularWriter<pd.PeriodicalAnchor>;
+    readonly periodicalCommonAnchors: ptab.TabularWriter<pd.PeriodicalAnchor>;
+    readonly periodicalEditions: ptab.TabularWriter<pd.PeriodicalEdition>;
+    readonly editionAnchors: ptab.TabularWriter<pd.ClassifiedAnchor>;
     close(): void;
 }
 
 export class DefaultRelationalCsvTableWriters implements RelationalCsvTableWriters {
-    static readonly UUID_NAMESPACE: UUID = "3438161e-47a2-415d-8fc8-ae8ed80a7c86";
+    static readonly UUID_NAMESPACE: ptab.UUID = "3438161e-47a2-415d-8fc8-ae8ed80a7c86";
     static readonly NAMES: RelationalCsvTableNames = {
         suppliers: "suppliers.csv",
         periodicals: "periodicals.csv",
@@ -146,21 +34,21 @@ export class DefaultRelationalCsvTableWriters implements RelationalCsvTableWrite
     }
 
     readonly names: RelationalCsvTableNames;
-    readonly suppliers: TabularWriter<pd.PeriodicalSupplier>;
-    readonly periodicals: TabularWriter<pd.Periodical>;
-    readonly periodicalAnchors: TabularWriter<pd.PeriodicalAnchor>;
-    readonly periodicalCommonAnchors: TabularWriter<pd.PeriodicalAnchor>;
-    readonly periodicalEditions: TabularWriter<pd.PeriodicalEdition>;
-    readonly editionAnchors: TabularWriter<pd.ClassifiedAnchor>;
+    readonly suppliers: ptab.TabularWriter<pd.PeriodicalSupplier>;
+    readonly periodicals: ptab.TabularWriter<pd.Periodical>;
+    readonly periodicalAnchors: ptab.TabularWriter<pd.PeriodicalAnchor>;
+    readonly periodicalCommonAnchors: ptab.TabularWriter<pd.PeriodicalAnchor>;
+    readonly periodicalEditions: ptab.TabularWriter<pd.PeriodicalEdition>;
+    readonly editionAnchors: ptab.TabularWriter<pd.ClassifiedAnchor>;
 
     constructor(destPath: string, uuidNamespace = DefaultRelationalCsvTableWriters.UUID_NAMESPACE, writers?: Partial<RelationalCsvTableWriters>) {
         this.names = writers?.names || DefaultRelationalCsvTableWriters.NAMES;
-        this.suppliers = writers?.suppliers || new TabularWriter({ destPath, fileName: this.names.suppliers, parentUuidNamespace: uuidNamespace });
-        this.periodicals = writers?.periodicals || new TabularWriter({ destPath, fileName: this.names.periodicals, parentUuidNamespace: uuidNamespace });
-        this.periodicalAnchors = writers?.periodicalAnchors || new TabularWriter({ destPath, fileName: this.names.periodicalAnchors, parentUuidNamespace: uuidNamespace });
-        this.periodicalCommonAnchors = writers?.periodicalCommonAnchors || new TabularWriter({ destPath, fileName: this.names.periodicalCommonAnchors, parentUuidNamespace: uuidNamespace });
-        this.periodicalEditions = writers?.periodicalEditions || new TabularWriter({ destPath, fileName: this.names.periodicalEditions, parentUuidNamespace: uuidNamespace });
-        this.editionAnchors = writers?.editionAnchors || new TabularWriter({ destPath, fileName: this.names.editionAnchors, parentUuidNamespace: uuidNamespace });
+        this.suppliers = writers?.suppliers || new ptab.TabularWriter({ destPath, fileName: this.names.suppliers, parentUuidNamespace: uuidNamespace });
+        this.periodicals = writers?.periodicals || new ptab.TabularWriter({ destPath, fileName: this.names.periodicals, parentUuidNamespace: uuidNamespace });
+        this.periodicalAnchors = writers?.periodicalAnchors || new ptab.TabularWriter({ destPath, fileName: this.names.periodicalAnchors, parentUuidNamespace: uuidNamespace });
+        this.periodicalCommonAnchors = writers?.periodicalCommonAnchors || new ptab.TabularWriter({ destPath, fileName: this.names.periodicalCommonAnchors, parentUuidNamespace: uuidNamespace });
+        this.periodicalEditions = writers?.periodicalEditions || new ptab.TabularWriter({ destPath, fileName: this.names.periodicalEditions, parentUuidNamespace: uuidNamespace });
+        this.editionAnchors = writers?.editionAnchors || new ptab.TabularWriter({ destPath, fileName: this.names.editionAnchors, parentUuidNamespace: uuidNamespace });
     }
 
     close(): void {
@@ -204,7 +92,7 @@ export class PersistRelationalCSV {
         }
     }
 
-    persistSupplier(supplier: pd.PeriodicalSupplier): UUID | undefined {
+    persistSupplier(supplier: pd.PeriodicalSupplier): ptab.UUID | undefined {
         const suppliersPK = this.writers.suppliers.createId(supplier.name);
         if (this.writers.suppliers.write({
             persist: { id: suppliersPK, name: supplier.name, periodicals: Object.keys(supplier.periodicals).length },
@@ -220,7 +108,7 @@ export class PersistRelationalCSV {
         return undefined;
     }
 
-    persistPeriodical(suppliersPK: string, p: pd.Periodical): UUID | undefined {
+    persistPeriodical(suppliersPK: string, p: pd.Periodical): ptab.UUID | undefined {
         const periodicalsPK = this.writers.periodicals.createId(p.name);
         if (this.writers.periodicals.write({
             persist: { id: periodicalsPK, supplier_id: suppliersPK, name: p.name, editions: p.editions.length },
