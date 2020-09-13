@@ -22,7 +22,7 @@
     "author": "Shahid N. Shah",
     "license": "MIT",
     "dependencies": {
-        "@shah/tsn-periodicals": "^0.7.3",
+        "@shah/tsn-periodicals": "^0.7.4",
         "@shah/tsn-persist-tabular": "^0.1.1",
         "uuid": "^8.3.0"
     },
